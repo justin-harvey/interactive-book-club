@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Elemonsters — Firestore security rules.
+// Paste into Firebase Console → Firestore Database → Rules (or deploy with the
+// Firebase CLI). This is NOT JSON — Firestore rules use this dedicated syntax.
+//
+// Model:
+//   questions/{questionId}          the MCQ bank (spec §7)
+//   dailySchedule/{classId}/days/{date}   the 40-day schedule (spec §5)
+//   students/{uid}                  one progress doc per student (spec §4.2)
+//
+// "Teacher" = a signed-in user carrying a custom claim { teacher: true }.
+// See firebase/NEXT-STEPS.md for how to grant that claim (one command).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
+
+    // Question bank: any signed-in student may read; only teachers may edit.
+    match /questions/{questionId} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+
+    // 40-day schedule: students read, teachers write. `days/{date=**}` covers
+    // any nested day documents under a class.
+    match /dailySchedule/{classId} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+      match /days/{date=**} {
+        allow read: if signedIn();
+        allow write: if isTeacher();
+      }
+    }
+
+    // Per-student progress: a student may read+write ONLY their own document;
+    // teachers may read every student's progress (for a dashboard).
+    match /students/{uid} {
+      allow read: if isTeacher() || (signedIn() && request.auth.uid == uid);
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+  }
+}

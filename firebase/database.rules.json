@@ -1,0 +1,43 @@
+{
+  "rules": {
+    "questions": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)"
+    },
+    "dailySchedule": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)"
+    },
+    "season": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)"
+    },
+    "classes": {
+      "$cid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $cid || auth.token.teacher === true)"
+      }
+    },
+    "assignments": {
+      ".read": "auth != null && (auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)",
+      "$sid": {
+        ".read": "auth != null && (auth.uid === $sid || auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)",
+        ".write": "auth != null && (auth.token.teacher === true || (root.child('admins').child(auth.uid).val() === true && ((newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)) || (!newData.exists() && data.val() === auth.uid))))"
+      }
+    },
+    "students": {
+      ".read": "auth != null && (auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.teacher === true || root.child('admins').child(auth.uid).val() === true)",
+        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true"
+      }
+    },
+    "admins": {
+      ".read": "auth != null && auth.token.teacher === true",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.teacher === true)",
+        ".write": "auth != null && auth.token.teacher === true"
+      }
+    }
+  }
+}

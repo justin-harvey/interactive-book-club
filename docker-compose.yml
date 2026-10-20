@@ -1,0 +1,41 @@
+# Interactive Book Club — self-host stack (M6).
+#
+# Two services on a private network:
+#   • presence — the WebSocket relay (server/presence-server.mjs). Not published to the
+#     host; only the web service reaches it, over the internal network, as "presence".
+#   • web      — nginx serving the built game and reverse-proxying /presence -> presence.
+#
+# The only published port is web's 8080. Put it behind Tailscale (recommended) or expose
+# it on the LAN. See docs/DEPLOY-M6.md.
+#
+#   docker compose up -d --build      # build + run
+#   docker compose logs -f            # watch
+#   docker compose down               # stop
+#
+# The club's "Now Reading" pick persists in the ./data volume (now-reading.json).
+
+services:
+  presence:
+    build:
+      context: .
+      dockerfile: Dockerfile.presence
+    image: ibc-presence
+    restart: unless-stopped
+    environment:
+      PRESENCE_PORT: "8140"
+      NOW_READING_FILE: /data/now-reading.json
+    volumes:
+      - ./data:/data
+    expose:
+      - "8140"      # internal only; not published to the host
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ibc-web
+    restart: unless-stopped
+    depends_on:
+      - presence
+    ports:
+      - "8080:8080"   # the one public port (front this with Tailscale or your LAN)

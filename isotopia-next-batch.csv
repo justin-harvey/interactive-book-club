@@ -1,0 +1,8 @@
+Priority,Atomic #,Symbol,Element,Suggested Monster,Suggested Tint,Art Hook,Target Sprite File,Status
+1,3,Li,Lithium,Lithspark,0xe57373,"light reactive metal, battery/spark motif",src/assets/elementals/lithium.png,DONE (shipped as Lithflare)
+2,14,Si,Silicon,Silichip,0x78909c,crystalline chip / circuit creature,src/assets/elementals/silicon.png,DONE 2026-10-01 (Gemini art)
+3,15,P,Phosphorus,Phosflare,0xffb74d,glowing match-tip / ember body,src/assets/elementals/phosphorus.png,DONE 2026-10-01 (Gemini art)
+4,17,Cl,Chlorine,Chlorofizz,0xcddc39,yellow-green pool-gas blob,src/assets/elementals/chlorine.png,DONE 2026-10-01 (Gemini art; revived from retirement)
+5,18,Ar,Argon,Argosnooze,0xb39ddb,sleepy inert noble-gas cloud,src/assets/elementals/argon.png,DONE 2026-10-01 (Gemini art)
+6,19,K,Potassium,Potaboom,0x9575cd,"banana-hued, explodes-in-water energy",src/assets/elementals/potassium.png,DONE (shipped as Kaliflare)
+7,20,Ca,Calcium,Calcibone,0xeceff1,chalky bone/teeth armored critter,src/assets/elementals/calcium.png,DONE (shipped as Calciglow)

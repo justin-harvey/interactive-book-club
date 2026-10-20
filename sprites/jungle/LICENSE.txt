@@ -1,0 +1,11 @@
+Lost Valleys (jungle) asset pack by ilmenite
+https://ilmenite.itch.io/lost-valleys-jungle
+
+The Read_My.txt bundled in Lost_Valleys_Main_Free/ describes the FREE tier
+(non-commercial, no redistribution). It does NOT apply to Isotopia: a separate
+DISTRIBUTION license for these files was PURCHASED by Justin Harvey on
+2026-09-30 (purchase receipt on file via email). Under that purchased grant we
+may commit the (modified/sliced) art to this repository and serve it on the
+live site, same as the woods and desert packs.
+
+Keep the receipt reference with this file if it needs to be produced.

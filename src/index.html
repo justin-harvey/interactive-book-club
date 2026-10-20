@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- The game canvas blocks its own pinch/double-tap zoom via touch-action:none
+       (index.css), so we do NOT disable page zoom here — low-vision students must be
+       able to pinch-zoom the DOM UI (WCAG 1.4.4). viewport-fit=cover fills past the
+       notch/home-indicator area. -->
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Interactive Book Club</title>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <!-- Home-screen app: tapping Share > Add to Home Screen opens full-screen with its
+       own name and icon instead of as a Safari tab. -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Book Club">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#000000">
+  <script src="game.js"></script>
+  <!-- GBA pixel font is self-hosted (see @font-face in index.css) so the game
+       works fully offline with no Google Fonts dependency. -->
+  <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+  <div id="game-container">
+    <div id="phaser-game"></div>
+  </div>
+  <div id="hud">
+    <span class="hud-title">Interactive Book Club</span>
+    <span class="hud-tip"><b>Tap</b> to walk · explore the town and step into buildings</span>
+    <span>Step on a glowing <b>▲/▼</b> pad to enter or leave a building</span>
+    <span>Press <b>Enter</b> to chat · tap <b>😊</b> to react · <b>🎨</b> (top-right) for your avatar</span>
+    <span>Visit the <b>Library</b> to read</span>
+  </div>
+</body>
+
+</html>

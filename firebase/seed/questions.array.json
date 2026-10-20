@@ -1,0 +1,275 @@
+[
+  {
+    "elementId": "hydrogen",
+    "angle": "protons",
+    "prompt": "How many protons does hydrogen have?",
+    "choices": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "hydrogen",
+    "angle": "ion",
+    "prompt": "What is the charge of a common hydrogen ion (H⁺)?",
+    "choices": [
+      "−1",
+      "0",
+      "+1",
+      "+2"
+    ],
+    "correctIndex": 2,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "hydrogen",
+    "angle": "valence",
+    "prompt": "How many valence electrons does hydrogen have?",
+    "choices": [
+      "0",
+      "1",
+      "2",
+      "8"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "helium",
+    "angle": "protons",
+    "prompt": "Helium's atomic number is 2. How many protons does it have?",
+    "choices": [
+      "1",
+      "2",
+      "4",
+      "8"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "helium",
+    "angle": "neutrons",
+    "prompt": "The most common isotope is helium-4. How many neutrons does it have?",
+    "choices": [
+      "0",
+      "2",
+      "4",
+      "6"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "helium",
+    "angle": "config",
+    "prompt": "Which best explains why helium rarely forms ions?",
+    "choices": [
+      "It has too many electrons",
+      "Its outer shell is full",
+      "It is a metal",
+      "It has no protons"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "carbon",
+    "angle": "protons",
+    "prompt": "How many protons does carbon have?",
+    "choices": [
+      "4",
+      "6",
+      "8",
+      "12"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "carbon",
+    "angle": "neutrons",
+    "prompt": "Carbon-12 has 6 protons. How many neutrons does it have?",
+    "choices": [
+      "6",
+      "12",
+      "0",
+      "18"
+    ],
+    "correctIndex": 0,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "carbon",
+    "angle": "valence",
+    "prompt": "Carbon has 4 valence electrons. How many covalent bonds does it typically form?",
+    "choices": [
+      "1",
+      "2",
+      "4",
+      "6"
+    ],
+    "correctIndex": 2,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "nitrogen",
+    "angle": "symbol",
+    "prompt": "What is nitrogen's chemical symbol?",
+    "choices": [
+      "Ni",
+      "N",
+      "Ne",
+      "Na"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "nitrogen",
+    "angle": "ion",
+    "prompt": "Nitrogen commonly forms an ion with what charge?",
+    "choices": [
+      "+3",
+      "−3",
+      "−1",
+      "+5"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "nitrogen",
+    "angle": "electrons",
+    "prompt": "A neutral nitrogen atom has how many electrons?",
+    "choices": [
+      "3",
+      "5",
+      "7",
+      "14"
+    ],
+    "correctIndex": 2,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "oxygen",
+    "angle": "protons",
+    "prompt": "Oxygen's atomic number is 8. How many protons does it have?",
+    "choices": [
+      "2",
+      "6",
+      "8",
+      "16"
+    ],
+    "correctIndex": 2,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "oxygen",
+    "angle": "ion",
+    "prompt": "What is the charge of the common oxide ion?",
+    "choices": [
+      "+2",
+      "−1",
+      "−2",
+      "+6"
+    ],
+    "correctIndex": 2,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "oxygen",
+    "angle": "valence",
+    "prompt": "How many valence electrons does oxygen have?",
+    "choices": [
+      "2",
+      "6",
+      "8",
+      "16"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "sodium",
+    "angle": "symbol",
+    "prompt": "What is sodium's chemical symbol?",
+    "choices": [
+      "So",
+      "Na",
+      "S",
+      "Sd"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "sodium",
+    "angle": "neutrons",
+    "prompt": "Sodium-23 has 11 protons. How many neutrons does it have?",
+    "choices": [
+      "11",
+      "12",
+      "22",
+      "23"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "sodium",
+    "angle": "ion",
+    "prompt": "Sodium tends to lose one electron. What ion does it form?",
+    "choices": [
+      "Na⁻",
+      "Na⁺",
+      "Na²⁺",
+      "Na (no charge)"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "chlorine",
+    "angle": "protons",
+    "prompt": "How many protons does chlorine have?",
+    "choices": [
+      "7",
+      "17",
+      "18",
+      "35"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "chlorine",
+    "angle": "ion",
+    "prompt": "Chlorine gains one electron to form which ion?",
+    "choices": [
+      "Cl⁺",
+      "Cl⁻",
+      "Cl²⁻",
+      "Cl (no charge)"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  },
+  {
+    "elementId": "chlorine",
+    "angle": "mass",
+    "prompt": "Chlorine's atomic mass is about 35.45. Why isn't it a whole number?",
+    "choices": [
+      "A rounding error",
+      "It's a weighted average of its isotopes",
+      "Electrons add mass",
+      "It has partial protons"
+    ],
+    "correctIndex": 1,
+    "quarterTheme": "starter"
+  }
+]

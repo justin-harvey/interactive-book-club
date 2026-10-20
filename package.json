@@ -1,0 +1,46 @@
+{
+    "name": "interactive-book-club",
+    "version": "0.1.0",
+    "description": "Interactive Book Club - a walkable pixel-world library and meeting space for friends",
+    "main": "src/game.ts",
+    "scripts": {
+        "dev": "rollup --config rollup.config.dev.js",
+        "build": "rm -rf dist && rollup --config rollup.config.dist.js",
+        "watch": "rollup --watch --config rollup.config.dev.js",
+        "presence": "node server/presence-server.mjs",
+        "verify:presence": "node tools/verify-presence.mjs",
+        "verify:presence-many": "node tools/verify-presence-many.mjs",
+        "verify:chat": "node tools/verify-chat.mjs",
+        "verify:emote": "node tools/verify-emote.mjs",
+        "verify:nowreading": "node tools/verify-nowreading.mjs",
+        "verify:proxy": "node tools/verify-proxy.mjs",
+        "verify:avatar": "node tools/verify-avatar.mjs",
+        "verify:library": "node tools/verify-bookshelf.mjs",
+        "docker:up": "docker compose up -d --build",
+        "docker:down": "docker compose down",
+        "docker:logs": "docker compose logs -f",
+        "package": "npm run build && cd dist && zip -qr ../isotopia-offline.zip . && cd .. && echo 'Wrote isotopia-offline.zip — unzip and open index.html to play offline.'"
+    },
+    "dependencies": {
+        "firebase": "^12.17.0",
+        "grid-engine": "^2.20.0",
+        "phaser": "^3.55.2",
+        "ws": "^8.22.0"
+    },
+    "devDependencies": {
+        "@lopatnov/rollup-plugin-uglify": "^2.1.4",
+        "@rollup/plugin-commonjs": "^22.0.2",
+        "@rollup/plugin-node-resolve": "^13.3.0",
+        "@rollup/plugin-replace": "^2.3.4",
+        "@rollup/pluginutils": "^4.2.1",
+        "pdfjs-dist": "^3.11.174",
+        "playwright-core": "^1.64.1",
+        "rollup": "^2.77.3",
+        "rollup-plugin-copy": "^3.4.0",
+        "rollup-plugin-serve": "^2.0.1",
+        "rollup-plugin-typescript2": "^0.32.1",
+        "rollup-pluginutils": "^2.8.2",
+        "terser": "^5.14.2",
+        "typescript": "^4.8.2"
+    }
+}

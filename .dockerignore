@@ -1,0 +1,16 @@
+# Keep build context small and reproducible.
+node_modules
+dist
+data
+.git
+.gitignore
+*.zip
+isotopia-offline.zip
+sprites
+building-sprites-edit
+evolution-art-preview
+tools/verify-*.mjs
+*.md
+docs
+.env
+.env.*

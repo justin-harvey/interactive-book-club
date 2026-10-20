@@ -1,0 +1,33 @@
+# System and IDE files
+Thumbs.db
+.DS_Store
+.idea
+*.tiled-session
+*.tmj
+dist/
+# Vendors
+node_modules/
+
+# Build
+/npm-debug.log
+*.log
+
+# never commit Firebase Admin credentials
+serviceAccount.json
+firebase/seed/serviceAccount.json
+
+# Firebase Admin SDK service-account keys
+*firebase-adminsdk*.json
+
+# Local environment (Firebase web config etc.) — copy .env.example to .env
+.env
+.env.local
+
+# Packaged offline build (npm run package)
+isotopia-offline.zip
+
+# Local dev preview page (not part of the game)
+cutscene-preview.html
+
+# presence server runtime state (club pick)
+server/now-reading.json

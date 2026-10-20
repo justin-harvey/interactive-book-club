@@ -1,0 +1,13 @@
+# Presence image (M6): the tiny self-hosted WebSocket relay (server/presence-server.mjs).
+# Only `ws` is needed at runtime, so install production deps only. The club pick persists
+# to NOW_READING_FILE — point it at a mounted volume in compose so it survives rebuilds.
+
+FROM node:22-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY server ./server
+ENV PRESENCE_PORT=8140
+ENV NOW_READING_FILE=/data/now-reading.json
+EXPOSE 8140
+CMD ["node", "server/presence-server.mjs"]
