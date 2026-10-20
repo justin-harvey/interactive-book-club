@@ -5,14 +5,17 @@
 // keyboard is disabled while the modal is open so typing a name doesn't walk the dog.
 
 import 'phaser';
-import { AVATAR_COLORS, getGuestName, getGuestColor, setGuestName, setGuestColor, textOn } from '../net/identity';
+import { AVATAR_COLORS, getGuestName, getGuestColor, getGuestCharacter, setGuestName, setGuestColor, setGuestCharacter, textOn } from '../net/identity';
+import { CHARACTERS } from '../data/characters';
 
 let btn: HTMLButtonElement | null = null;
 let modal: HTMLDivElement | null = null;
 let nameInput: HTMLInputElement | null = null;
 let swatchWrap: HTMLDivElement | null = null;
+let charWrap: HTMLDivElement | null = null;
 let activeScene: Phaser.Scene | null = null;
 let chosenColor = '';
+let chosenCharacter = '';
 let isOpen = false;
 
 export function isAvatarPanelOpen(): boolean {
@@ -30,6 +33,38 @@ function renderSwatches(): void {
         s.setAttribute('aria-label', `Colour ${hex}`);
         s.addEventListener('click', () => { chosenColor = hex; renderSwatches(); syncButton(); });
         swatchWrap!.appendChild(s);
+    });
+}
+
+// A grid of character thumbnails (pixel townsfolk show their down-standing frame; the
+// dog shows a 🐕 glyph). Picking just marks the selection; Save commits it.
+function renderCharacters(): void {
+    if (!charWrap) return;
+    charWrap.innerHTML = '';
+    CHARACTERS.forEach(def => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ibc-avatar__char' + (def.id === chosenCharacter ? ' ibc-avatar__char--on' : '');
+        b.title = def.label;
+        b.setAttribute('aria-label', def.label);
+        if (def.pixel && def.sheet) {
+            const thumb = document.createElement('span');
+            thumb.className = 'ibc-avatar__thumb';
+            // Show frame 0 (down, standing — always at the sheet's top-left), scaled so the
+            // frame is ~44px tall. Works for any sheet (townsfolk 16x24, animals 32x32).
+            const k = 44 / def.frameHeight;
+            thumb.style.width = `${def.frameWidth * k}px`;
+            thumb.style.height = `${def.frameHeight * k}px`;
+            thumb.style.backgroundImage = `url(${def.sheet})`;
+            thumb.style.backgroundSize = `${(def.sheetWidth || def.frameWidth) * k}px ${(def.sheetHeight || def.frameHeight) * k}px`;
+            thumb.style.backgroundPosition = '0 0';
+            b.appendChild(thumb);
+        } else {
+            b.textContent = '🐕';
+            b.classList.add('ibc-avatar__char--emoji');
+        }
+        b.addEventListener('click', () => { chosenCharacter = def.id; renderCharacters(); });
+        charWrap!.appendChild(b);
     });
 }
 
@@ -68,11 +103,16 @@ function ensure(): void {
                 <span>Colour</span>
                 <div class="ibc-avatar__swatches"></div>
             </div>
+            <div class="ibc-avatar__field">
+                <span>Character</span>
+                <div class="ibc-avatar__chars"></div>
+            </div>
             <button class="ibc-avatar__save" type="button">Save</button>
         </div>
     `;
     nameInput = modal.querySelector('.ibc-avatar__name');
     swatchWrap = modal.querySelector('.ibc-avatar__swatches');
+    charWrap = modal.querySelector('.ibc-avatar__chars');
     nameInput!.addEventListener('keydown', (e) => {
         e.stopPropagation();
         if (e.key === 'Enter') { e.preventDefault(); save(); }
@@ -90,8 +130,10 @@ function open(): void {
     if (isOpen || !activeScene) return;
     isOpen = true;
     chosenColor = getGuestColor();
+    chosenCharacter = getGuestCharacter();
     nameInput!.value = getGuestName();
     renderSwatches();
+    renderCharacters();
     const kb = activeScene.input?.keyboard;
     if (kb) kb.enabled = false;
     modal!.style.display = 'flex';
@@ -102,6 +144,7 @@ function save(): void {
     const name = (nameInput?.value || '').trim();
     if (name) setGuestName(name);
     if (chosenColor) setGuestColor(chosenColor);
+    if (chosenCharacter) setGuestCharacter(chosenCharacter);
     syncButton();
     close();
 }

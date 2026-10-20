@@ -15,6 +15,7 @@
         "verify:nowreading": "node tools/verify-nowreading.mjs",
         "verify:proxy": "node tools/verify-proxy.mjs",
         "verify:avatar": "node tools/verify-avatar.mjs",
+        "verify:character": "node tools/verify-character.mjs",
         "verify:library": "node tools/verify-bookshelf.mjs",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down",

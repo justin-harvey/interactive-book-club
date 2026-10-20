@@ -8,9 +8,9 @@
 //   3. ws://<page-hostname>:8140    (dev / direct)
 // Presence is optional: if the server is unreachable the game runs fine solo.
 
-import { getGuestId, getGuestName, getGuestColor } from './identity';
+import { getGuestId, getGuestName, getGuestColor, getGuestCharacter } from './identity';
 
-export interface Peer { id: string; name: string; x: number; y: number; facing: string; color?: string; }
+export interface Peer { id: string; name: string; x: number; y: number; facing: string; color?: string; character?: string; }
 
 export interface ChatMsg { id: string; name: string; text: string; }
 export interface EmoteMsg { id: string; e: string; }
@@ -48,6 +48,7 @@ class PresenceClient {
     readonly id = getGuestId();
     get name(): string { return getGuestName(); }
     get color(): string { return getGuestColor(); }
+    get character(): string { return getGuestCharacter(); }
 
     private ensure(): void {
         if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
@@ -81,7 +82,7 @@ class PresenceClient {
     }
 
     private sendHello(): void {
-        this.send({ t: 'hello', room: this.room, id: this.id, name: this.name, color: this.color, ...this.self });
+        this.send({ t: 'hello', room: this.room, id: this.id, name: this.name, color: this.color, character: this.character, ...this.self });
     }
 
     // Re-announce the current identity to the room (after a name/colour change), so peers

@@ -918,6 +918,39 @@ html, body {
     border-color: #fff;
     box-shadow: 0 0 0 2px #ffd166;
 }
+.ibc-avatar__chars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-height: 168px;
+    overflow-y: auto;
+    padding: 2px;
+}
+.ibc-avatar__char {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 3 / 4;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s ease, border-color 0.1s ease;
+}
+.ibc-avatar__char:hover { background: rgba(255, 255, 255, 0.14); }
+.ibc-avatar__char--on {
+    border-color: #ffd166;
+    background: rgba(255, 209, 102, 0.16);
+}
+.ibc-avatar__char--emoji { font-size: 24px; line-height: 1; }
+.ibc-avatar__thumb {
+    display: block;                /* width/height set inline per character */
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
 .ibc-avatar__save {
     min-height: 44px;
     color: #10203a;

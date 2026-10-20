@@ -15,7 +15,7 @@ import { Emotes } from '../ui/Emotes';
 import { showEmoteBar, hideEmoteBar } from '../ui/EmoteBar';
 import { showAvatarUi, hideAvatarUi } from '../ui/AvatarPanel';
 import { setNowReading as setClubNowReading, getNowReading } from './clubState';
-import { getGuestColor, colorToInt, onIdentityChange, setGuestName, setGuestColor } from './identity';
+import { onIdentityChange, setGuestName, setGuestColor, setGuestCharacter } from './identity';
 
 export function attachPresence(scene: GameScene): void {
     const client = getPresenceClient();
@@ -24,11 +24,6 @@ export function attachPresence(scene: GameScene): void {
     const emotes = new Emotes(scene);
     const room = scene.scene.key;
     let offIdentity: (() => void) | null = null;
-
-    // Tint the local player's avatar with their chosen colour (same as peers see).
-    const applyLocalTint = (): void => {
-        try { scene.gridEngine.getSprite(scene.playerName)?.setTint(colorToInt(getGuestColor())); } catch { /* ignore */ }
-    };
 
     // Send an emote and pop our own glyph locally (no echo from the server).
     const sendEmote = (glyph: string): void => {
@@ -64,9 +59,9 @@ export function attachPresence(scene: GameScene): void {
         document.addEventListener('keydown', onOpenKey);
         showEmoteBar(sendEmote);
         showAvatarUi(scene);
-        applyLocalTint();
-        // Changing name/colour (Avatar panel) re-tints us locally and re-announces to peers.
-        offIdentity = onIdentityChange(() => { applyLocalTint(); client.reannounce(); });
+        scene.applyCharacter();   // sync the avatar to the chosen character/colour (cross-scene safe)
+        // Changing name/colour/character (Avatar panel) re-skins us locally + re-announces.
+        offIdentity = onIdentityChange(() => { scene.applyCharacter(); client.reannounce(); });
         // Test hook (opt-in via ?e2e/?debug): expose this scene's presence so automated
         // tests can assert who's visible and inject chat/emotes/identity. Not present in play.
         if (/[?&](e2e|debug)\b/.test(location.search)) {
@@ -77,6 +72,7 @@ export function attachPresence(scene: GameScene): void {
                 setReading: (bookId: string) => { setClubNowReading(bookId); client.setNowReading(bookId); return bookId; },
                 nowReading: () => getNowReading(),
                 setIdentity: (name: string, color: string) => { if (name) setGuestName(name); if (color) setGuestColor(color); return { name, color }; },
+                setCharacter: (id: string) => { if (id) setGuestCharacter(id); return id; },
             };
         }
     };

@@ -1,23 +1,17 @@
-// Renders other members in the current scene as avatars that move in real time.
-// Each remote uses the same dog avatar art + walking animation as the local player;
-// grid-engine walks them tile-to-tile (from the per-tile updates the server relays),
-// so movement interpolates smoothly. A small name tag floats above each.
+// Renders other members in the current scene as avatars that move in real time. Each
+// remote is drawn as the character THAT peer chose (see data/characters.ts) — the pixel
+// townsfolk or the dog — with that character's walk mapping and scale; grid-engine walks
+// them tile-to-tile from the per-tile updates the server relays, so motion interpolates
+// smoothly. A small colour-coded name tag floats above each.
 
 import 'phaser';
 import type GameScene from '../Scenes/GameScene';
 import { createCharacterSprite } from '../Scenes/components/NpcAndObjects';
 import { colorToInt, textOn } from './identity';
+import { getCharacter, textureKeyFor, type CharacterDef } from '../data/characters';
 import type { Peer } from './PresenceClient';
 
-// Same frame layout as the local player (see GameScene.initiateGridEngine).
-const WALK_MAP = {
-    up: { leftFoot: 25, standing: 24, rightFoot: 26 },
-    down: { leftFoot: 29, standing: 28, rightFoot: 30 },
-    left: { leftFoot: 9, standing: 8, rightFoot: 11 },
-    right: { leftFoot: 13, standing: 12, rightFoot: 15 },
-};
-
-interface Remote { gid: string; name: string; color: string; label: Phaser.GameObjects.Text; }
+interface Remote { gid: string; name: string; color: string; character: string; label: Phaser.GameObjects.Text; }
 
 // grid-engine character id for a remote peer. Shared so chat bubbles can target the
 // same sprite RemotePlayers manages.
@@ -38,6 +32,25 @@ export class RemotePlayers {
 
     private gidOf(id: string): string { return remoteGid(id); }
 
+    // Build a sprite for a character (texture/scale, crisp pixels, colour tint only when
+    // the character is tintable — the dog; pixel townsfolk keep their own colours).
+    private buildSprite(def: CharacterDef, color: string): Phaser.GameObjects.Sprite {
+        const sprite = createCharacterSprite(this.scene, 0, 0, textureKeyFor(this.scene, def), def.scale);
+        if (def.pixel) sprite.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+        if (def.tintable && color) sprite.setTint(colorToInt(color));
+        return sprite;
+    }
+
+    private addGeChar(gid: string, def: CharacterDef, color: string, x: number, y: number, facing: string): void {
+        this.scene.gridEngine.addCharacter({
+            id: gid,
+            sprite: this.buildSprite(def, color),
+            startPosition: { x, y },
+            walkingAnimationMapping: def.walk as any,
+            facingDirection: (facing as any) || 'down',
+        });
+    }
+
     upsert(peer: Peer): void {
         if (!peer || !peer.id) return;
         const ge = this.scene.gridEngine;
@@ -46,33 +59,44 @@ export class RemotePlayers {
 
         if (!existing) {
             const color = peer.color || '';
-            const sprite = createCharacterSprite(this.scene, 0, 0, this.scene.imageNames.Perli, this.scene.avatarScale);
-            if (color) sprite.setTint(colorToInt(color));
-            ge.addCharacter({
-                id: gid,
-                sprite,
-                startPosition: { x: peer.x, y: peer.y },
-                walkingAnimationMapping: WALK_MAP as any,
-                facingDirection: (peer.facing as any) || 'down',
-            });
+            const character = peer.character || '';
+            this.addGeChar(gid, getCharacter(character), color, peer.x, peer.y, peer.facing);
             const label = this.scene.add.text(0, 0, peer.name || 'Guest', {
                 fontFamily: 'Courier New', fontSize: '7px',
                 color: color ? textOn(color) : '#ffffff',
                 align: 'center', fontStyle: 'bold',
                 backgroundColor: color || 'rgba(16,32,58,0.75)',
             }).setOrigin(0.5, 1).setDepth(50).setResolution(4);
-            this.remotes.set(peer.id, { gid, name: peer.name || 'Guest', color, label });
+            this.remotes.set(peer.id, { gid, name: peer.name || 'Guest', color, character, label });
             return;
         }
 
         // Keep the name if this update carried one (move frames don't).
         if (peer.name) { existing.name = peer.name; existing.label.setText(peer.name); }
-        // Apply a colour change (re-announce after the Avatar panel); move frames omit it.
+
+        // Character change (re-announce after the Avatar panel) → rebuild the sprite in
+        // place, preserving tile + facing. Move frames omit character, so this is skipped.
+        if (peer.character && peer.character !== existing.character) {
+            existing.character = peer.character;
+            let x = peer.x, y = peer.y, facing: string = peer.facing || 'down';
+            if (ge.hasCharacter(gid)) {
+                const p = ge.getPosition(gid); x = p.x; y = p.y;
+                facing = (ge.getFacingDirection(gid) as unknown as string) || facing;
+                ge.removeCharacter(gid);
+            }
+            this.addGeChar(gid, getCharacter(existing.character), existing.color, x, y, facing);
+        }
+
+        // Colour change → always recolour the name tag; re-tint the sprite only if the
+        // character is tintable (the dog).
         if (peer.color && peer.color !== existing.color) {
             existing.color = peer.color;
             existing.label.setColor(textOn(peer.color)).setBackgroundColor(peer.color);
-            if (ge.hasCharacter(gid)) { const s = ge.getSprite(gid); if (s) s.setTint(colorToInt(peer.color)); }
+            if (getCharacter(existing.character).tintable && ge.hasCharacter(gid)) {
+                const s = ge.getSprite(gid); if (s) s.setTint(colorToInt(peer.color));
+            }
         }
+
         if (!ge.hasCharacter(gid)) return;
         const cur = ge.getPosition(gid);
         if (cur.x !== peer.x || cur.y !== peer.y) {
@@ -109,9 +133,10 @@ export class RemotePlayers {
 
     count(): number { return this.remotes.size; }
 
-    // The avatar colour / display name a peer is currently using, or null. For the E2E hook.
+    // Avatar colour / display name / character a peer is currently using, or null. E2E hook.
     colorFor(id: string): string | null { return this.remotes.get(id)?.color || null; }
     nameFor(id: string): string | null { return this.remotes.get(id)?.name || null; }
+    characterFor(id: string): string | null { return this.remotes.get(id)?.character || null; }
 
     private repositionLabels(): void {
         if (this.updating) return;

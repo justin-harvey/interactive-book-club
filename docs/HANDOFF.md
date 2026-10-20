@@ -55,6 +55,9 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
                                      flow through it. Proves the nginx wiring WITHOUT Docker.
 - `npm run verify:avatar`         — 2+1 browsers: change name + colour → peer sees both on
                                      your avatar; late-joiner gets them on join (M7)
+- `npm run verify:character`      — 2+1 browsers: pick different characters (villager →
+                                     animal → dog) → each sees the re-skin, local avatar
+                                     swaps, late-joiner gets it on join
 
   ⚠️ `verify:library` joins `verify:presence` as LOAD-SENSITIVE: both walk the avatar
   multiple tiles and assert exact state in a window. Under a loaded machine (e.g. many
@@ -111,6 +114,33 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
 ---
 
 ## Log
+
+### 2026-10-20 — Selectable characters: 15 pixel townsfolk + 6 animals + the dog
+- "Just one dog is limiting" → avatars are now **selectable characters** synced over
+  presence, so friends look different. A general system, driven by a registry:
+  - `src/data/characters.ts` — each `CharacterDef` carries texture/frame size/scale/
+    walk-mapping/tintable/pixel flags. Entries: **15 CC0 pixel townsfolk** (16x24,
+    piano-no-renshu, in `src/assets/Characters/townsfolk/`), **6 animals** (32x32 cats/
+    fox/raccoon/birds, in `.../animals/`), and **Perli the dog** (the original). A fresh
+    guest is seeded a stable-random *villager* (dog + animals are explicit picks).
+  - Chosen character is part of identity (`ibc:character`) and rides `hello`/`snapshot`/
+    `join` like name/colour; server carries it in peer state. `RemotePlayers` renders each
+    peer as their character (right sheet/scale/map; tint only the dog). Local player is
+    built from the choice in `initiateGridEngine` and **live-swapped** via
+    `GameScene.applyCharacter()` (grid-engine remove+add, same tile/facing) on change.
+  - Picker: a thumbnail grid in the 🎨 Avatar panel (shows each sheet's down-standing
+    frame; dog = 🐕). The dog's bark/sniff easter egg is guarded to the dog only.
+  - **Sheet layouts (frame 0 = standing):** townsfolk 4x4, rows Down/Left/Up/Right;
+    animals 4x13 (only rows 0-3 used), rows **Down/Right/Left/Up** (different order — the
+    fox's trailing tail disambiguated L vs R). If an animal ever walks the wrong way
+    horizontally, swap `left`/`right` in `ANIMAL_WALK`.
+  - **Verified E2E** (`npm run verify:character`): two browsers pick different characters
+    (incl. a pixel→animal→dog swap) → each sees the other re-skin, the local avatar swaps,
+    and a late-joiner gets it on join. PASS. Regression: avatar/chat/emote/nowreading PASS.
+    In-game screenshot confirms the cat renders at the right scale.
+  - **Licensing:** townsfolk are CC0 (no attribution needed). **Animal sprites' license is
+    NOT yet verified** — see CREDITS.md; confirm terms before any public/commercial use.
+  - Not yet committed/pushed to GitHub (the repo is at the pre-characters M7 state).
 
 ### 2026-10-20 — M7: avatar customization + seasonal flavour (polish)
 - **Avatar customization (the flagship):** each guest now has a display **name + colour**,

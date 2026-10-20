@@ -4,9 +4,12 @@
 // override these. UI (the Avatar panel) changes name/colour; listeners re-tint the local
 // avatar and re-announce to peers (see onIdentityChange + ScenePresence).
 
+import { defaultCharacterId } from '../data/characters';
+
 const ID_KEY = 'ibc:uid';
 const NAME_KEY = 'ibc:name';
 const COLOR_KEY = 'ibc:color';
+const CHARACTER_KEY = 'ibc:character';
 
 // A friendly, visually distinct palette so friends can tell each other apart.
 export const AVATAR_COLORS = [
@@ -60,6 +63,23 @@ export function getGuestColor(): string {
         try { localStorage.setItem(COLOR_KEY, color); } catch { /* ignore */ }
     }
     return color;
+}
+
+export function getGuestCharacter(): string {
+    let c = '';
+    try { c = localStorage.getItem(CHARACTER_KEY) || ''; } catch { /* ignore */ }
+    if (!c) {
+        // Seed a stable-random pixel villager from the guest id, so a room of friends
+        // auto-varies instead of everyone being the same dog. Dog stays a choice.
+        c = defaultCharacterId(getGuestId());
+        try { localStorage.setItem(CHARACTER_KEY, c); } catch { /* ignore */ }
+    }
+    return c;
+}
+
+export function setGuestCharacter(id: string): void {
+    const c = String(id || '').trim().slice(0, 24);
+    if (c) { try { localStorage.setItem(CHARACTER_KEY, c); } catch { /* ignore */ } notify(); }
 }
 
 export function setGuestName(name: string): void {

@@ -88,7 +88,8 @@ function enter(conn, msg) {
     conn.name = String(msg.name || 'Guest');
     conn.room = String(msg.room);
     const color = String(msg.color || '').slice(0, 9);   // '#rrggbb'
-    const state = { id: conn.id, name: conn.name, color, x: msg.x | 0, y: msg.y | 0, facing: msg.facing || 'down' };
+    const character = String(msg.character || '').slice(0, 24);
+    const state = { id: conn.id, name: conn.name, color, character, x: msg.x | 0, y: msg.y | 0, facing: msg.facing || 'down' };
 
     const m = roomMap(conn.room);
     // Snapshot of everyone already here, sent only to the newcomer.

@@ -16,6 +16,8 @@ import { startBattle } from '../ui/QuizOverlay'
 import { showNpcDialog } from '../ui/NpcDialog'
 import { attachPresence } from '../net/ScenePresence'
 import { isRadFinderEquipped, getRadTarget, setRadReading } from '../ui/RadFinder'
+import { getCharacter, textureKeyFor, loadCharacterSheets, type CharacterDef } from '../data/characters'
+import { getGuestCharacter, getGuestColor, colorToInt } from '../net/identity'
 
 // Real Elemental art is a big single image; this scale reads it down to roughly
 // character size on the grid (the placeholder NPC spritesheet uses ~0.7).
@@ -56,6 +58,8 @@ export default abstract class GameScene extends Phaser.Scene {
     playerSprite!: Phaser.Physics.Arcade.Sprite;
     playerName!: string;
     avatarScale: number = 0.15;
+    playerCharacter!: CharacterDef;      // the chosen avatar character
+    private appliedLook = '';            // last applied "<characterId>|<colour>" signature
 
     // action sounds
     bark: Phaser.Sound.BaseSound;
@@ -200,28 +204,23 @@ export default abstract class GameScene extends Phaser.Scene {
     update(): void {
         this.refreshRadFinder();
 
-        // code to set habilities
-        if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
-            /* uncomment this to use it as a hint to see the tile where player is placed ingame */
-            // console.log(`facingPosition: (${this.gridEngine.getFacingPosition(this.playerName).x
-            //     }, ${this.gridEngine.getFacingPosition(this.playerName).y})`);
-
+        // Dog-only actions (bark/sit/sniff). These animations live on the Perli sheet, so
+        // they only apply when the player's character is the dog; pixel townsfolk skip them.
+        if (Phaser.Input.Keyboard.JustDown(this.keyA) && this.playerCharacter?.special) {
             this.bark.play();
             this.gridEngine.getFacingDirection(this.playerName) === "right"
                 ? this.playerSprite.anims.play("barkingRight", true)
                 : this.playerSprite.anims.play("barking", true);
         };
 
-        if (Phaser.Input.Keyboard.JustDown(this.keyS)) {
-            console.log("sit");
+        if (Phaser.Input.Keyboard.JustDown(this.keyS) && this.playerCharacter?.special) {
             this.gridEngine.getFacingDirection(this.playerName) === "right"
                 ? this.playerSprite.anims.play("sitRight", true)
                 : this.playerSprite.anims.play("sit", true);
             this.registerDogAction('S');
         };
 
-        if (Phaser.Input.Keyboard.JustDown(this.keyD)) {
-            console.log("sniff");
+        if (Phaser.Input.Keyboard.JustDown(this.keyD) && this.playerCharacter?.special) {
             this.sniff.play();
             this.gridEngine.getFacingDirection(this.playerName) === "right"
                 ? this.playerSprite.anims.play("sniffRight", true)
@@ -354,6 +353,8 @@ export default abstract class GameScene extends Phaser.Scene {
             'assets/Characters/Perli.png',
             { frameWidth: 198, frameHeight: 188 }
         );
+        // Also load the selectable pixel townsfolk (idempotent across scene preloads).
+        loadCharacterSheets(this);
     }
 
     // Queue the real art PNGs for the given Elementals (skips ones with no art
@@ -584,42 +585,60 @@ export default abstract class GameScene extends Phaser.Scene {
 
     // GridEngine methods should only be used after this method was called!**
     initiateGridEngine(): void {
-        this.playerSprite = createCharacterSprite(this, 0, 0, this.imageNames.Perli, this.avatarScale)
+        this.playerCharacter = getCharacter(getGuestCharacter());
+        this.playerSprite = this.makeAvatarSprite(this.playerCharacter);
+        this.appliedLook = this.currentLook();
         const gridEngineConfig = {
             characters: [
                 {
                     id: this.playerName,
                     sprite: this.playerSprite,
                     startPosition: this.gridEngineSettings.startPosition,
-                    // you can use this to set custom walking animations, or use the default
-                    walkingAnimationMapping: {
-                        up: {
-                            leftFoot: 25,
-                            standing: 24,
-                            rightFoot: 26,
-                        },
-                        down: {
-                            leftFoot: 29,
-                            standing: 28,
-                            rightFoot: 30,
-                        },
-                        left: {
-                            leftFoot: 9,
-                            standing: 8,
-                            rightFoot: 11,
-                        },
-                        right: {
-                            leftFoot: 13,
-                            standing: 12,
-                            rightFoot: 15,
-                        },
-                    },
+                    walkingAnimationMapping: this.playerCharacter.walk as any,
                 },
             ],
             layerOverlay: this.gridEngineSettings.layerOverlay,
             characterCollisionStrategy: this.gridEngineSettings.characterCollisionStrategy
         }
         this.gridEngine.create(this.map, gridEngineConfig)
+    }
+
+    // Build an avatar sprite for a character: right texture + scale, crisp (NEAREST)
+    // filtering for pixel art, and the local colour tint when the character is tintable
+    // (the dog tints nicely; pixel townsfolk keep their own colours).
+    makeAvatarSprite(def: CharacterDef): Phaser.Physics.Arcade.Sprite {
+        const sprite = createCharacterSprite(this, 0, 0, textureKeyFor(this, def), def.scale);
+        if (def.pixel) sprite.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+        if (def.tintable) sprite.setTint(colorToInt(getGuestColor()));
+        return sprite;
+    }
+
+    private currentLook(): string {
+        return `${getGuestCharacter()}|${getGuestColor()}`;
+    }
+
+    // Re-skin the local player when the chosen character or colour changes (from the
+    // Avatar panel). Rebuilds the grid-engine character in place (same id, same tile +
+    // facing), so movement/presence keep working. No-op if nothing changed.
+    applyCharacter(): void {
+        if (!this.gridEngine?.hasCharacter(this.playerName)) return;
+        const look = this.currentLook();
+        if (look === this.appliedLook) return;
+        const pos = this.gridEngine.getPosition(this.playerName);
+        const facing = this.gridEngine.getFacingDirection(this.playerName);
+        this.gridEngine.removeCharacter(this.playerName);
+        this.playerSprite?.destroy();
+        this.playerCharacter = getCharacter(getGuestCharacter());
+        this.playerSprite = this.makeAvatarSprite(this.playerCharacter);
+        this.gridEngine.addCharacter({
+            id: this.playerName,
+            sprite: this.playerSprite,
+            startPosition: pos,
+            walkingAnimationMapping: this.playerCharacter.walk as any,
+            facingDirection: facing,
+        });
+        this.cameras.main.startFollow(this.playerSprite, true);
+        this.appliedLook = look;
     }
 
     // create cameras
