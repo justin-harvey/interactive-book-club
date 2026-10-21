@@ -115,6 +115,17 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
 
 ## Log
 
+### 2026-10-21 — Bird flight toggle (F key)
+- Birds (pigeon/gull) can **press F to fly** (toggle on) and F again to land. Uses their
+  wing-spread poses in cols 4-7 of each row (`BIRD_FLY` map); `CharacterDef.fly?: WalkMap`
+  marks a flyer. `GameScene.flying` + `toggleFlight()` rebuild the player with the fly/walk
+  map (the appliedLook signature now includes fly/walk); non-birds ignore F and `flying`
+  resets when you switch to a non-flyer. Mirroring still applies while flying. Verified
+  in-game: walk frame 8 → F → fly frame 12 → F → walk frame 8. verify:character still PASS.
+- **LOCAL only** (as asked): flight isn't synced yet, so friends currently see your bird
+  walking. Syncing it is an easy follow-up (relay a fly flag like emotes; remotes already
+  rebuild on character change).
+
 ### 2026-10-21 — Fix: critter left/right + self-documenting mirror direction
 - hamster/pigeon/gull faced the wrong way too: their single side row (row 0) is drawn
   facing **right** (verified in-game — beaks/snout point right), but `mirror` assumed

@@ -38,6 +38,7 @@ export interface CharacterDef {
     // (Undefined = full 4-direction art, no flipping.)
     mirror?: 'left' | 'right';
     thumbFrame?: number;  // frame index to show in the picker (default 0)
+    fly?: WalkMap;        // flying-pose frames — present only on birds (toggle with F)
 }
 
 // The dog's layout (a wide multi-row sheet with extra special-action frames).
@@ -87,6 +88,14 @@ const BIRD_WALK: WalkMap = {
     down: { leftFoot: 9, standing: 8, rightFoot: 11 },   // row 1
     up: { leftFoot: 17, standing: 16, rightFoot: 19 },   // row 2
 };
+// The birds' FLYING poses live in cols 4-7 of each row (wings spread). Same 3-direction
+// layout as BIRD_WALK (side faces right, mirrored for left). Used while flight is toggled.
+const BIRD_FLY: WalkMap = {
+    right: { leftFoot: 5, standing: 4, rightFoot: 7 },    // row 0 cols 4-7
+    left: { leftFoot: 5, standing: 4, rightFoot: 7 },     // = row 0, flipped
+    down: { leftFoot: 13, standing: 12, rightFoot: 15 },  // row 1
+    up: { leftFoot: 21, standing: 20, rightFoot: 23 },    // row 2
+};
 
 export const DOG_ID = 'perli';
 
@@ -126,16 +135,16 @@ const animals: CharacterDef[] = animalArt.map(a => ({
 
 // Small 16x16 critters (3-direction, mirrored for right). thumbFrame 8 = the down-facing
 // standing pose, so the picker shows them facing the viewer.
-const critterArt: { id: string; label: string; file: string; walk: WalkMap }[] = [
+const critterArt: { id: string; label: string; file: string; walk: WalkMap; fly?: WalkMap }[] = [
     { id: 'hamster', label: 'Hamster', file: 'hamster', walk: HAMSTER_WALK },
-    { id: 'pigeon', label: 'Pigeon', file: 'pigeon', walk: BIRD_WALK },
-    { id: 'gull', label: 'Gull', file: 'gull', walk: BIRD_WALK },
+    { id: 'pigeon', label: 'Pigeon', file: 'pigeon', walk: BIRD_WALK, fly: BIRD_FLY },
+    { id: 'gull', label: 'Gull', file: 'gull', walk: BIRD_WALK, fly: BIRD_FLY },
 ];
 const critters: CharacterDef[] = critterArt.map(c => ({
     id: c.id, label: c.label,
     frameWidth: 16, frameHeight: 16, scale: 1,
     // Their single side row (row 0) is drawn facing RIGHT, so it's flipped for left.
-    tintable: false, pixel: true, special: false, mirror: 'right', thumbFrame: 8, walk: c.walk,
+    tintable: false, pixel: true, special: false, mirror: 'right', thumbFrame: 8, walk: c.walk, fly: c.fly,
     textureKey: `ibc_${c.id}`, sheet: `assets/Characters/animals/${c.file}.png`,
     sheetWidth: 128, sheetHeight: c.id === 'hamster' ? 96 : 48,
 }));

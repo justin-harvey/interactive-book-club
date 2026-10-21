@@ -16,7 +16,7 @@ import { startBattle } from '../ui/QuizOverlay'
 import { showNpcDialog } from '../ui/NpcDialog'
 import { attachPresence } from '../net/ScenePresence'
 import { isRadFinderEquipped, getRadTarget, setRadReading } from '../ui/RadFinder'
-import { getCharacter, textureKeyFor, loadCharacterSheets, faceFlip, type CharacterDef } from '../data/characters'
+import { getCharacter, textureKeyFor, loadCharacterSheets, faceFlip, type CharacterDef, type WalkMap } from '../data/characters'
 import { getGuestCharacter, getGuestColor, colorToInt } from '../net/identity'
 
 // Real Elemental art is a big single image; this scale reads it down to roughly
@@ -50,6 +50,7 @@ export default abstract class GameScene extends Phaser.Scene {
     keyS: Phaser.Input.Keyboard.Key;
     keyD: Phaser.Input.Keyboard.Key;
     keyR: Phaser.Input.Keyboard.Key;
+    keyF!: Phaser.Input.Keyboard.Key;
 
     // menu keys
     backKey!: Phaser.Input.Keyboard.Key;
@@ -59,7 +60,8 @@ export default abstract class GameScene extends Phaser.Scene {
     playerName!: string;
     avatarScale: number = 0.15;
     playerCharacter!: CharacterDef;      // the chosen avatar character
-    private appliedLook = '';            // last applied "<characterId>|<colour>" signature
+    flying = false;                      // birds only: flight toggled with F
+    private appliedLook = '';            // last applied "<characterId>|<colour>|<fly>" signature
 
     // action sounds
     bark: Phaser.Sound.BaseSound;
@@ -136,6 +138,7 @@ export default abstract class GameScene extends Phaser.Scene {
         this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
 
         // add sounds
         this.bark = this.sound.add('bark', { loop: false });
@@ -209,6 +212,11 @@ export default abstract class GameScene extends Phaser.Scene {
         // moveTo, so this is the reliable hook. No-op for 4-direction characters.
         if (this.playerCharacter?.mirror) {
             faceFlip(this.playerSprite, this.playerCharacter, this.gridEngine.getFacingDirection(this.playerName) as unknown as string);
+        }
+
+        // F toggles flight for birds (take off / land).
+        if (this.keyF && Phaser.Input.Keyboard.JustDown(this.keyF)) {
+            this.toggleFlight();
         }
 
         // Dog-only actions (bark/sit/sniff). These animations live on the Perli sheet, so
@@ -601,7 +609,7 @@ export default abstract class GameScene extends Phaser.Scene {
                     id: this.playerName,
                     sprite: this.playerSprite,
                     startPosition: this.gridEngineSettings.startPosition,
-                    walkingAnimationMapping: this.playerCharacter.walk as any,
+                    walkingAnimationMapping: this.effectiveMap() as any,
                 },
             ],
             layerOverlay: this.gridEngineSettings.layerOverlay,
@@ -621,33 +629,48 @@ export default abstract class GameScene extends Phaser.Scene {
         return sprite;
     }
 
-    private currentLook(): string {
-        return `${getGuestCharacter()}|${getGuestColor()}`;
+    // The frame mapping in effect: the character's flying poses while flight is toggled on
+    // (birds only), otherwise its normal walk.
+    private effectiveMap(): WalkMap {
+        return (this.flying && this.playerCharacter.fly) ? this.playerCharacter.fly : this.playerCharacter.walk;
     }
 
-    // Re-skin the local player when the chosen character or colour changes (from the
-    // Avatar panel). Rebuilds the grid-engine character in place (same id, same tile +
-    // facing), so movement/presence keep working. No-op if nothing changed.
+    private currentLook(): string {
+        return `${getGuestCharacter()}|${getGuestColor()}|${this.flying ? 'fly' : 'walk'}`;
+    }
+
+    // Re-skin the local player when the chosen character / colour / flight state changes.
+    // Rebuilds the grid-engine character in place (same id, same tile + facing), so
+    // movement/presence keep working. No-op if nothing changed.
     applyCharacter(): void {
         if (!this.gridEngine?.hasCharacter(this.playerName)) return;
+        const def = getCharacter(getGuestCharacter());
+        if (!def.fly) this.flying = false;   // non-birds can't fly
         const look = this.currentLook();
         if (look === this.appliedLook) return;
         const pos = this.gridEngine.getPosition(this.playerName);
         const facing = this.gridEngine.getFacingDirection(this.playerName);
         this.gridEngine.removeCharacter(this.playerName);
         this.playerSprite?.destroy();
-        this.playerCharacter = getCharacter(getGuestCharacter());
-        this.playerSprite = this.makeAvatarSprite(this.playerCharacter);
+        this.playerCharacter = def;
+        this.playerSprite = this.makeAvatarSprite(def);
         this.gridEngine.addCharacter({
             id: this.playerName,
             sprite: this.playerSprite,
             startPosition: pos,
-            walkingAnimationMapping: this.playerCharacter.walk as any,
+            walkingAnimationMapping: this.effectiveMap() as any,
             facingDirection: facing,
         });
         this.cameras.main.startFollow(this.playerSprite, true);
         faceFlip(this.playerSprite, this.playerCharacter, facing as unknown as string);
         this.appliedLook = look;
+    }
+
+    // Toggle flight (birds only) — press F. Rebuilds the avatar with the fly/walk frames.
+    toggleFlight(): void {
+        if (!this.playerCharacter?.fly) return;
+        this.flying = !this.flying;
+        this.applyCharacter();
     }
 
     // create cameras
