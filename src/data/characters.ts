@@ -103,6 +103,12 @@ const dog: CharacterDef = {
     id: DOG_ID, label: 'Perli the dog',
     frameWidth: 198, frameHeight: 188, scale: 0.15,
     tintable: true, pixel: false, special: true, walk: DOG_WALK,
+    // Perli's sheet, so the Avatar picker can show a real cropped dog (frame 28 = the
+    // down-facing standing pose) instead of a stand-in 🐕 emoji. Loaded for gameplay
+    // under a per-scene key; this fixed path is only for the DOM thumbnail. The sheet
+    // is 4 columns wide (796 ≈ 4×198).
+    sheet: 'assets/Characters/Perli.png',
+    sheetWidth: 796, sheetHeight: 1504, thumbFrame: 28,
 };
 
 const townsfolk: CharacterDef[] = Array.from({ length: 15 }, (_, i) => {

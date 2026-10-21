@@ -47,12 +47,13 @@ function renderCharacters(): void {
         b.className = 'ibc-avatar__char' + (def.id === chosenCharacter ? ' ibc-avatar__char--on' : '');
         b.title = def.label;
         b.setAttribute('aria-label', def.label);
-        if (def.pixel && def.sheet) {
+        if (def.sheet) {
             const thumb = document.createElement('span');
             thumb.className = 'ibc-avatar__thumb';
             // Show the character's `thumbFrame` (default 0 = down-standing for most; the
-            // 3-dir critters set it to their front pose), scaled so the frame is ~44px tall.
-            // Works for any sheet (townsfolk 16x24, animals 32x32, critters 16x16).
+            // 3-dir critters set it to their front pose; the dog uses frame 28), scaled so
+            // the frame is ~44px tall. Works for any sheet (townsfolk 16x24, animals 32x32,
+            // critters 16x16, and the dog's big 198x188 hand-drawn sheet).
             const k = 44 / def.frameHeight;
             const sheetW = def.sheetWidth || def.frameWidth;
             const cols = Math.max(1, Math.round(sheetW / def.frameWidth));
@@ -63,9 +64,11 @@ function renderCharacters(): void {
             thumb.style.backgroundImage = `url(${def.sheet})`;
             thumb.style.backgroundSize = `${sheetW * k}px ${(def.sheetHeight || def.frameHeight) * k}px`;
             thumb.style.backgroundPosition = `${-col * def.frameWidth * k}px ${-row * def.frameHeight * k}px`;
+            // The dog is hand-drawn, not pixel art — don't force nearest-neighbour on it.
+            if (!def.pixel) thumb.style.imageRendering = 'auto';
             b.appendChild(thumb);
         } else {
-            b.textContent = '🐕';
+            b.textContent = '🐾';
             b.classList.add('ibc-avatar__char--emoji');
         }
         b.addEventListener('click', () => { chosenCharacter = def.id; renderCharacters(); });
