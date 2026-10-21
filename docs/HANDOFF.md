@@ -115,6 +115,15 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
 
 ## Log
 
+### 2026-10-21 — Hovering birds keep flapping
+- grid-engine only cycles frames while a character is *moving*, so a flying bird parked in
+  place used to freeze on its single standing fly-pose. `GameScene.updateFlightFlap()` (called
+  each `update`) now loops a wing-flap animation while flying AND stopped, and hands frames
+  back to grid-engine while moving (its walk cycle through the fly frames already beats the
+  wings). `ensureFlapAnim(dir)` builds the per-direction loop once from the row's four fly
+  cols (base..base+3), keyed by texture so pigeon/gull don't collide. Verified headlessly: a
+  hovering pigeon cycles frames 12→15 (flap_ibc_pigeon_down) instead of staying on one frame.
+
 ### 2026-10-21 — Bird flight toggle (F key)
 - Birds (pigeon/gull) can **press F to fly** (toggle on) and F again to land. Uses their
   wing-spread poses in cols 4-7 of each row (`BIRD_FLY` map); `CharacterDef.fly?: WalkMap`

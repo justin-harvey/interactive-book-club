@@ -219,6 +219,9 @@ export default abstract class GameScene extends Phaser.Scene {
             this.toggleFlight();
         }
 
+        // Keep a flying bird's wings beating even while it hovers in place.
+        this.updateFlightFlap();
+
         // Dog-only actions (bark/sit/sniff). These animations live on the Perli sheet, so
         // they only apply when the player's character is the dog; pixel townsfolk skip them.
         if (Phaser.Input.Keyboard.JustDown(this.keyA) && this.playerCharacter?.special) {
@@ -633,6 +636,46 @@ export default abstract class GameScene extends Phaser.Scene {
     // (birds only), otherwise its normal walk.
     private effectiveMap(): WalkMap {
         return (this.flying && this.playerCharacter.fly) ? this.playerCharacter.fly : this.playerCharacter.walk;
+    }
+
+    // Wing-flap for a hovering bird. grid-engine only cycles frames while the character is
+    // moving, so a stationary flyer would freeze on its single standing pose. While flying
+    // AND stopped we loop the flap animation ourselves; while moving, grid-engine's walk
+    // cycle through the fly frames already beats the wings, so we hand control back to it.
+    private updateFlightFlap(): void {
+        if (!this.flying || !this.playerCharacter?.fly) return;
+        if (this.gridEngine.isMoving(this.playerName)) {
+            if (this.playerSprite.anims.isPlaying) this.playerSprite.anims.stop();
+            return;
+        }
+        const dir = this.gridEngine.getFacingDirection(this.playerName) as unknown as string;
+        const key = this.ensureFlapAnim(dir);
+        if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
+            this.playerSprite.anims.play(key, true);
+        }
+    }
+
+    // Build (once) and name the looping flap animation for the current flying direction.
+    // The fly poses sit in a bird sheet's cols 4-7 of a direction's row, so the four flap
+    // frames run from that row's standing frame. left/right share the side row (mirrored by
+    // faceFlip). Keyed by texture so pigeon and gull don't collide in the global anim store.
+    private ensureFlapAnim(dir: string): string {
+        const fly = this.playerCharacter.fly!;
+        const row = dir === 'up' ? fly.up : dir === 'down' ? fly.down : fly.right;
+        const group = dir === 'up' ? 'up' : dir === 'down' ? 'down' : 'side';
+        const key = `flap_${this.playerCharacter.textureKey}_${group}`;
+        if (!this.anims.exists(key)) {
+            const base = row.standing;
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(this.playerCharacter.textureKey!, {
+                    frames: [base, base + 1, base + 2, base + 3],
+                }),
+                frameRate: 8,
+                repeat: -1,
+            });
+        }
+        return key;
     }
 
     private currentLook(): string {
