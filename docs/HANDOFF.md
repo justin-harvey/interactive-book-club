@@ -115,6 +115,15 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
 
 ## Log
 
+### 2026-10-21 — Fix: critter left/right + self-documenting mirror direction
+- hamster/pigeon/gull faced the wrong way too: their single side row (row 0) is drawn
+  facing **right** (verified in-game — beaks/snout point right), but `mirror` assumed
+  left. Changed `CharacterDef.mirror` from a boolean to **`'left' | 'right'`** = the
+  direction the side art natively faces; `faceFlip` now flips for the OPPOSITE side. So
+  the registry self-documents each 3-direction sheet's facing (reusable). Critters set
+  `mirror: 'right'`. Verified: gull moving right shows native row 0 (beak right), no flip.
+- `verify:character` updated (hamster now mirrors for LEFT-facing) and passes.
+
 ### 2026-10-21 — Fix: townsfolk left/right were swapped
 - The 15 pixel townsfolk faced the wrong way when walking horizontally: their sheet rows
   are Down/**Right**/Up/**Left** (row 1 = right-facing, row 3 = left-facing), but

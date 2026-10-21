@@ -32,7 +32,11 @@ export interface CharacterDef {
     sheet?: string;       // asset path to load (pixel chars); the dog is loaded elsewhere
     sheetWidth?: number;  // full PNG dims (pixel chars) — used for picker thumbnails
     sheetHeight?: number;
-    mirror?: boolean;     // 3-direction art (no separate right row) — flip the sprite for 'right'
+    // 3-direction art (one side row, no separate left+right). The value is the direction
+    // that side row's art NATIVELY faces; the sprite is flipped for the opposite side.
+    // e.g. mirror:'right' means the art faces right, so it's flipped when facing left.
+    // (Undefined = full 4-direction art, no flipping.)
+    mirror?: 'left' | 'right';
     thumbFrame?: number;  // frame index to show in the picker (default 0)
 }
 
@@ -65,21 +69,23 @@ const ANIMAL_WALK: WalkMap = {
     up: { leftFoot: 13, standing: 12, rightFoot: 15 },  // row 3
 };
 
-// Three creatures isolated from the atlas: 16x16 frames, 8 cols, rows Left/Down/Up only
-// (no separate right — these use `mirror` to flip for the right-facing direction, so
-// `right` reuses the `left` frames). The hamster keeps its standing pose at col 0 and its
-// 4-frame run at cols 4-7 (cols 1-3 are an atlas gap); the birds walk on cols 0-3.
+// Three creatures isolated from the atlas: 16x16 frames, 8 cols, with only THREE direction
+// rows — Side (row 0), Down (row 1), Up (row 2). The side row is drawn facing RIGHT
+// (verified in-game: beaks/snout point right), so `left` and `right` both use row 0 and the
+// sprite is flipped for left (see each critter's `mirror: 'right'` and faceFlip()). The
+// hamster keeps its standing pose at col 0 with a 4-frame run at cols 4-7 (cols 1-3 are an
+// atlas gap); the birds walk on cols 0-3 (cols 4-7 are FLYING poses, currently unused).
 const HAMSTER_WALK: WalkMap = {
-    left: { leftFoot: 4, standing: 0, rightFoot: 6 },    // row 0: col0 sit + cols4-7 run
+    right: { leftFoot: 4, standing: 0, rightFoot: 6 },   // row 0 (side art, faces right)
+    left: { leftFoot: 4, standing: 0, rightFoot: 6 },    // = row 0, flipped by faceFlip
     down: { leftFoot: 12, standing: 8, rightFoot: 14 },  // row 1
     up: { leftFoot: 20, standing: 16, rightFoot: 22 },   // row 2
-    right: { leftFoot: 4, standing: 0, rightFoot: 6 },   // = left, mirrored
 };
 const BIRD_WALK: WalkMap = {
-    left: { leftFoot: 1, standing: 0, rightFoot: 3 },    // row 0: cols0-3 walk (4-7 = flying)
+    right: { leftFoot: 1, standing: 0, rightFoot: 3 },   // row 0 (side art, faces right)
+    left: { leftFoot: 1, standing: 0, rightFoot: 3 },    // = row 0, flipped by faceFlip
     down: { leftFoot: 9, standing: 8, rightFoot: 11 },   // row 1
     up: { leftFoot: 17, standing: 16, rightFoot: 19 },   // row 2
-    right: { leftFoot: 1, standing: 0, rightFoot: 3 },   // = left, mirrored
 };
 
 export const DOG_ID = 'perli';
@@ -128,7 +134,8 @@ const critterArt: { id: string; label: string; file: string; walk: WalkMap }[] =
 const critters: CharacterDef[] = critterArt.map(c => ({
     id: c.id, label: c.label,
     frameWidth: 16, frameHeight: 16, scale: 1,
-    tintable: false, pixel: true, special: false, mirror: true, thumbFrame: 8, walk: c.walk,
+    // Their single side row (row 0) is drawn facing RIGHT, so it's flipped for left.
+    tintable: false, pixel: true, special: false, mirror: 'right', thumbFrame: 8, walk: c.walk,
     textureKey: `ibc_${c.id}`, sheet: `assets/Characters/animals/${c.file}.png`,
     sheetWidth: 128, sheetHeight: c.id === 'hamster' ? 96 : 48,
 }));
@@ -161,7 +168,10 @@ export function textureKeyFor(scene: GameScene, def: CharacterDef): string {
 // left art (3-direction creatures). grid-engine's walk mapping can't flip, so we do it here
 // on direction changes, for both the local player and remotes. No-op for 4-direction chars.
 export function faceFlip(sprite: Phaser.GameObjects.Sprite | undefined | null, def: CharacterDef, facing: string): void {
-    if (def && def.mirror && sprite) sprite.setFlipX(facing === 'right');
+    if (!def || !def.mirror || !sprite) return;
+    // Flip when facing the side OPPOSITE the art's native direction.
+    const flipFor = def.mirror === 'left' ? 'right' : 'left';
+    sprite.setFlipX(facing === flipFor);
 }
 
 // Load every pixel character sheet once (townsfolk + animals; idempotent across scene

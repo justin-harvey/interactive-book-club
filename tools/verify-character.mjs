@@ -117,7 +117,8 @@ catch { await fail("Alice never saw Bob become the hamster"); }
 if (await localTexture(bob.page) !== 'ibc_hamster') await fail("Bob's avatar did not swap to the hamster");
 steps.push("Alice sees Bob become the hamster; Bob's avatar swapped");
 
-// The hamster is a 3-direction creature: it mirrors (flipX) when facing right.
+// The hamster is a 3-direction creature whose side art faces RIGHT, so it mirrors (flipX)
+// when facing LEFT.
 const mirror = await bob.page.evaluate(async () => {
     const s = window.__isotopia.game.scene.getScene('library');
     const flip = () => s.gridEngine.getSprite(s.playerName).flipX;
@@ -126,8 +127,8 @@ const mirror = await bob.page.evaluate(async () => {
     s.gridEngine.turnTowards(s.playerName, 'left'); await wait(); const left = flip();
     return { right, left };
 });
-if (mirror.right !== true || mirror.left !== false) await fail('hamster did not mirror for right-facing', mirror);
-steps.push('hamster mirrors for right-facing (flipX right=true, left=false)');
+if (mirror.right !== false || mirror.left !== true) await fail('hamster did not mirror for left-facing', mirror);
+steps.push('hamster mirrors for left-facing (flipX left=true, right=false)');
 
 // 4) Late-joiner gets Alice's chosen character on join (snapshot).
 const carol = await boot('Carol');
