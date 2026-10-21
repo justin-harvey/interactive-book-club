@@ -8,10 +8,10 @@ import 'phaser';
 import type GameScene from '../Scenes/GameScene';
 import { createCharacterSprite } from '../Scenes/components/NpcAndObjects';
 import { colorToInt, textOn } from './identity';
-import { getCharacter, textureKeyFor, type CharacterDef } from '../data/characters';
+import { getCharacter, textureKeyFor, faceFlip, type CharacterDef } from '../data/characters';
 import type { Peer } from './PresenceClient';
 
-interface Remote { gid: string; name: string; color: string; character: string; label: Phaser.GameObjects.Text; }
+interface Remote { gid: string; name: string; color: string; character: string; facing: string; label: Phaser.GameObjects.Text; }
 
 // grid-engine character id for a remote peer. Shared so chat bubbles can target the
 // same sprite RemotePlayers manages.
@@ -67,9 +67,11 @@ export class RemotePlayers {
                 align: 'center', fontStyle: 'bold',
                 backgroundColor: color || 'rgba(16,32,58,0.75)',
             }).setOrigin(0.5, 1).setDepth(50).setResolution(4);
-            this.remotes.set(peer.id, { gid, name: peer.name || 'Guest', color, character, label });
+            this.remotes.set(peer.id, { gid, name: peer.name || 'Guest', color, character, facing: peer.facing || 'down', label });
             return;
         }
+
+        if (peer.facing) existing.facing = peer.facing;
 
         // Keep the name if this update carried one (move frames don't).
         if (peer.name) { existing.name = peer.name; existing.label.setText(peer.name); }
@@ -147,6 +149,7 @@ export class RemotePlayers {
             const sprite = ge.getSprite(r.gid);
             if (!sprite) return;
             r.label.setPosition(sprite.x, sprite.y - sprite.displayHeight * 0.5 - 2);
+            faceFlip(sprite, getCharacter(r.character), r.facing);   // mirror 3-dir creatures for 'right'
         });
         this.updating = false;
     }

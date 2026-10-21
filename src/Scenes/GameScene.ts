@@ -16,7 +16,7 @@ import { startBattle } from '../ui/QuizOverlay'
 import { showNpcDialog } from '../ui/NpcDialog'
 import { attachPresence } from '../net/ScenePresence'
 import { isRadFinderEquipped, getRadTarget, setRadReading } from '../ui/RadFinder'
-import { getCharacter, textureKeyFor, loadCharacterSheets, type CharacterDef } from '../data/characters'
+import { getCharacter, textureKeyFor, loadCharacterSheets, faceFlip, type CharacterDef } from '../data/characters'
 import { getGuestCharacter, getGuestColor, colorToInt } from '../net/identity'
 
 // Real Elemental art is a big single image; this scale reads it down to roughly
@@ -203,6 +203,13 @@ export default abstract class GameScene extends Phaser.Scene {
 
     update(): void {
         this.refreshRadFinder();
+
+        // Mirror 3-direction characters (hamster/birds) for the 'right' facing. Done every
+        // frame from the current facing — grid-engine's directionChanged doesn't fire during
+        // moveTo, so this is the reliable hook. No-op for 4-direction characters.
+        if (this.playerCharacter?.mirror) {
+            faceFlip(this.playerSprite, this.playerCharacter, this.gridEngine.getFacingDirection(this.playerName) as unknown as string);
+        }
 
         // Dog-only actions (bark/sit/sniff). These animations live on the Perli sheet, so
         // they only apply when the player's character is the dog; pixel townsfolk skip them.
@@ -601,6 +608,7 @@ export default abstract class GameScene extends Phaser.Scene {
             characterCollisionStrategy: this.gridEngineSettings.characterCollisionStrategy
         }
         this.gridEngine.create(this.map, gridEngineConfig)
+        faceFlip(this.playerSprite, this.playerCharacter, this.gridEngine.getFacingDirection(this.playerName) as unknown as string)
     }
 
     // Build an avatar sprite for a character: right texture + scale, crisp (NEAREST)
@@ -638,6 +646,7 @@ export default abstract class GameScene extends Phaser.Scene {
             facingDirection: facing,
         });
         this.cameras.main.startFollow(this.playerSprite, true);
+        faceFlip(this.playerSprite, this.playerCharacter, facing as unknown as string);
         this.appliedLook = look;
     }
 

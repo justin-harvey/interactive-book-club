@@ -11,8 +11,11 @@ work — no third-party game assets.
 No attribution is required for CC0; this credit is courtesy.
 Source: https://piano-no-renshu.itch.io/top-down-character-sprites
 
-## Avatar characters — animals
-`src/assets/Characters/animals/*.png` (cats, fox, raccoon, birds) were provided by Justin.
+## Avatar characters — animals & critters
+`src/assets/Characters/animals/*.png` were provided by Justin:
+- cats, fox, raccoon, birds (32x32), and
+- hamster, pigeon, gull (16x16, isolated from a creature atlas).
+
 **License not yet verified** — confirm the source's terms allow use before any public/
 commercial distribution. (Fine for private, friends-only use in the meantime.)
 

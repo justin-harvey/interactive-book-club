@@ -115,6 +115,40 @@ your LAN IP. (Remote/off-LAN friends need M6 hosting + Tailscale.)
 
 ## Log
 
+### 2026-10-21 — Fix: townsfolk left/right were swapped
+- The 15 pixel townsfolk faced the wrong way when walking horizontally: their sheet rows
+  are Down/**Right**/Up/**Left** (row 1 = right-facing, row 3 = left-facing), but
+  `TOWNSFOLK_WALK` had `left` on row 1 and `right` on row 3. Verified in-game (moving right
+  showed row 3's left-facing art), then swapped `left`↔`right` in the map. Re-verified:
+  moving right now shows row 1 (right-facing). Animals (fox/cat → row 1, no flip) and
+  critters (pigeon → row 0 mirrored) were already correct — only the townsfolk were wrong.
+- Lesson (again): the sheets' side rows aren't in an obvious order; confirm facing in-game,
+  don't eyeball the art.
+
+### 2026-10-21 — 3 more critters (hamster/pigeon/gull) + flip-on-turn mirroring
+- Added **hamster, pigeon, gull** (isolated by Justin from the creature atlas). These are
+  **16x16, 3-direction** sheets (rows Left/Down/Up only — no separate right), so they drove
+  a new **mirroring** feature: `data/characters.ts` `faceFlip(sprite, def, facing)` sets
+  `flipX` when a `mirror:true` character faces right, so `right` reuses the `left` frames.
+  - Layouts: birds walk on cols 0-3 (cols 4-7 = flying, unused); the hamster keeps its
+    standing pose at col 0 and a 4-frame run at cols 4-7 (cols 1-3 are an atlas gap). Maps:
+    `HAMSTER_WALK` / `BIRD_WALK`. Added `mirror` + `thumbFrame` to `CharacterDef` (thumbFrame
+    8 = the front pose for the picker). scale 1 (small critters).
+  - **Mirroring is applied every frame from the current facing**, NOT via grid-engine's
+    `directionChanged` — that observable does NOT fire during `moveTo` (facing is published
+    via `positionChangeFinished` instead), which cost an hour of debugging. Local flip lives
+    in `GameScene.update()`; remote flip in `RemotePlayers.repositionLabels()` (both gated on
+    `def.mirror`, no-op for the 4-direction characters). grid-engine does not touch `flipX`,
+    so a per-frame set is stable.
+  - **Verified** `npm run verify:character` (now also asserts the hamster mirrors: flipX
+    right=true/left=false) + an in-game screenshot (hamster renders small and faces right).
+    Regression: chat/emote/avatar PASS.
+  - Lesson for next time: for a 3-direction sheet, don't trust `directionChanged`; flip from
+    `getFacingDirection()` in the update loop.
+- **Decode caveat:** these hand-isolated files had ambiguous frame sizes (I had to go 32→16
+  px) and atlas gaps; the rest of `spritesheet.png` (~20 creatures) is cuttable the same way
+  but each is bespoke 3-direction work. Not committed/pushed yet.
+
 ### 2026-10-20 — Selectable characters: 15 pixel townsfolk + 6 animals + the dog
 - "Just one dog is limiting" → avatars are now **selectable characters** synced over
   presence, so friends look different. A general system, driven by a registry:
